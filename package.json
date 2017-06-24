@@ -3,7 +3,6 @@
   "description": "Data structure for validating form data",
   "repository": "yoshuawuyts/validate-formdata",
   "version": "1.0.0",
-  "private": true,
   "scripts": {
     "deps": "dependency-check . && dependency-check . --extra --no-dev",
     "start": "bankai start example",
