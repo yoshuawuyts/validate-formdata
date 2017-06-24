@@ -7,6 +7,7 @@ Data structure for validating form data.
 - framework agnostic
 - only a data structure, no opinions on UI
 - about 50 lines of code
+- creates a `window.FormData` object, ready for XHR
 
 ## Usage
 ```js
