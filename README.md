@@ -80,13 +80,8 @@ app.use(function (state, emitter) {
   emitter.on('submit', function (e) {
     if (!state.form.valid) throw new Error('form not valid')
 
-    var formData = validator.formData()
-    var opts = {
-      url: '/my-url',
-      method: 'POST',
-      body: formData
-    }
-    xhr(opts, function (err, res) {
+    var opts = { body: validator.formData() }
+    xhr.post('/my-url', opts, function (err, res) {
       if (err) throw err
       console.log(res)
     })
