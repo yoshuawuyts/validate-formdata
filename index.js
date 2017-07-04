@@ -10,6 +10,7 @@ function ValidateFormdata () {
   this.validators = {}
   this.length = 0
   this.state = {
+    changed: false,
     valid: false,
     pristine: {},
     required: {},
@@ -32,6 +33,7 @@ ValidateFormdata.prototype.field = function (key, opts, validator) {
   this.state.pristine[key] = true
   this.state.errors[key] = null
   this.state.values[key] = ''
+
   if (opts.required !== false) {
     this.state.required[key] = true
     this.length += 1
@@ -54,6 +56,7 @@ ValidateFormdata.prototype.file = function (key, opts, validator) {
   this.state.pristine[key] = true
   this.state.errors[key] = null
   this.state.values[key] = null
+
   if (opts.required !== false) {
     this.state.required[key] = true
     this.length += 1
@@ -74,28 +77,34 @@ ValidateFormdata.prototype.validate = function (key, value) {
 
   var error = validator(value)
 
-  this.state.pristine[key] = false
   this.state.errors[key] = error
   this.state.values[key] = value
+  this.changed = false
+
+  if (!pristine) {
+    this.changed = true
+    this.state.pristine[key] = false
+  }
 
   // we had an error, we no longer have an error: change
   // we had an error, we still have an error: do nothing
   // we didn't have an error, we now have an error: change
-  // we didn't have an error, we still don't have an error: do nothingdd
+  // we didn't have an error, we still don't have an error: do nothing
   if (error) {
     if (!hadError) {
       if (required && !pristine) this.validLength -= 1
+      this.changed = true
       this.errorCount += 1
     }
   } else {
-    if (required) this.validLength += 1
-    if (hadError) this.errorCount -= 1
-  }
-
-  if (this.validLength === this.length) {
-    this.state.valid = true
-  } else {
-    this.state.valid = false
+    if (required) {
+      this.changed = true
+      this.validLength += 1
+    }
+    if (hadError) {
+      this.changed = true
+      this.errorCount -= 1
+    }
   }
 
   if (this.validLength === this.length) {
