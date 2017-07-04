@@ -5,10 +5,10 @@ module.exports = ValidateFormdata
 function ValidateFormdata () {
   if (!(this instanceof ValidateFormdata)) return new ValidateFormdata()
 
+  this.totalLength = 0
   this.validLength = 0
   this.errorLength = 0
   this.validators = {}
-  this.length = 0
   this.state = {
     changed: false,
     valid: false,
@@ -36,7 +36,7 @@ ValidateFormdata.prototype.field = function (key, opts, validator) {
 
   if (opts.required !== false) {
     this.state.required[key] = true
-    this.length += 1
+    this.totalLength += 1
   } else {
     this.state.require[key] = false
   }
@@ -53,13 +53,13 @@ ValidateFormdata.prototype.file = function (key, opts, validator) {
   assert.equal(typeof validator, 'function', 'ValidateFormdata.file: validator should be type function')
 
   this.validators[key] = validator
-  this.state.pristine[key] = true
+  this.state.pristine[key] = false
   this.state.errors[key] = null
   this.state.values[key] = null
 
   if (opts.required !== false) {
     this.state.required[key] = true
-    this.length += 1
+    this.totalLength += 1
   } else {
     this.state.required[key] = false
   }
@@ -81,7 +81,7 @@ ValidateFormdata.prototype.validate = function (key, value) {
   this.state.values[key] = value
   this.changed = false
 
-  if (!pristine) {
+  if (pristine) {
     this.changed = true
     this.state.pristine[key] = false
   }
@@ -92,22 +92,28 @@ ValidateFormdata.prototype.validate = function (key, value) {
   // we didn't have an error, we still don't have an error: do nothing
   if (error) {
     if (!hadError) {
-      if (required && !pristine) this.validLength -= 1
+      console.log('required', required, 'pristine', pristine)
+      if (required && !pristine) {
+        this.validLength -= 1
+        console.log('decreasing valid length to', this.validLength)
+      }
       this.changed = true
-      this.errorCount += 1
+      this.errorLength += 1
+      console.log('increasing err count to', this.errorLength)
     }
   } else {
-    if (required) {
-      this.changed = true
-      this.validLength += 1
-    }
     if (hadError) {
       this.changed = true
-      this.errorCount -= 1
+      this.errorLength -= 1
+      if (required) this.validLength += 1
+      console.log('no new err, ok old err', this.validLength, this.errorLength)
+    } else if (!hadError && pristine) {
+      if (required) this.validLength += 1
+      console.log('no new err, no old err', this.validLength, this.errorLength)
     }
   }
 
-  if (this.validLength === this.length) {
+  if (this.validLength === this.totalLength) {
     this.state.valid = true
   } else {
     this.state.valid = false
