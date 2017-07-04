@@ -60,13 +60,13 @@ app.use(function (state, emitter) {
   var validator = validateFormdata()
   state.form = validator.state
 
-  validator.add('name', function (data) {
+  validator.field('name', function (data) {
     if (!data) return new Error("name can't be empty")
     if (!(data instanceof String)) return new Error('name should be a string')
     if (data.length < 6) return new Error('name should be at least 6 characters')
   })
 
-  validator.add('password', function (data) {
+  validator.field('password', function (data) {
     if (!data) return new Error("password can't be empty")
     if (!(data instanceof String)) return new Error('password should be a string')
     if (data.length < 6) return new Error('password should be at least 6 characters')
@@ -102,15 +102,22 @@ The state object is meant to be passed directly into the UI for rendering:
 - __validator.state.values[key]:__ Get the value from the key.
 - __validator.state.valid:__ Check if the form is valid.
 
-### `validator.add(key, validateFunction)`
-Create a new validate function for the given key. The validation functions
-should either return nothing, or an `Error` object. The `.message` property
-from the error can be used when rendering.
+### `validator.field(key, [opts], validateFunction)`
+Create a new field validation function for the given key. The validation
+functions should either return nothing, or an `Error` object. The `.message`
+property from the error can be used when rendering.
+
+### `validator.field(key, [opts], validateFunction)`
+Create a new file validation function for the given key. The validation
+functions should either return nothing, or an `Error` object. The `.message`
+property from the error can be used when rendering. Opts can contain:
+- __required:__ default: true. Determine if the field is required to pass.
 
 ### `validator.validate(key, value)`
 Validate data. The first time the validate function is called for a key it sets
 the corresponding `state.pristine[key]` to `false`. `state.valid` is set to
 `true` when all values are valid.
+- __required:__ default: true. Determine if the field is required to pass.
 
 ### `validator.formData()`
 Return a `window.FormData` instance from the form. Can be used to send
