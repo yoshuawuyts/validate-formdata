@@ -92,24 +92,17 @@ ValidateFormdata.prototype.validate = function (key, value) {
   // we didn't have an error, we still don't have an error: do nothing
   if (error) {
     if (!hadError) {
-      console.log('required', required, 'pristine', pristine)
-      if (required && !pristine) {
-        this.validLength -= 1
-        console.log('decreasing valid length to', this.validLength)
-      }
+      if (required && !pristine) this.validLength -= 1
       this.changed = true
       this.errorLength += 1
-      console.log('increasing err count to', this.errorLength)
     }
   } else {
     if (hadError) {
       this.changed = true
       this.errorLength -= 1
       if (required) this.validLength += 1
-      console.log('no new err, ok old err', this.validLength, this.errorLength)
     } else if (!hadError && pristine) {
       if (required) this.validLength += 1
-      console.log('no new err, no old err', this.validLength, this.errorLength)
     }
   }
 
