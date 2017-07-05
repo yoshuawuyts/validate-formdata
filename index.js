@@ -9,6 +9,7 @@ function ValidateFormdata () {
   this.validLength = 0
   this.errorLength = 0
   this.validators = {}
+  this.changed = false
   this.state = {
     changed: false,
     valid: false,
@@ -25,6 +26,8 @@ ValidateFormdata.prototype.field = function (key, opts, validator) {
     opts = {}
   }
 
+  validator = validator || noop
+
   assert.equal(typeof key, 'string', 'ValidateFormdata.field: key should be type string')
   assert.equal(typeof opts, 'object', 'ValidateFormdata.field: opts should be type object')
   assert.equal(typeof validator, 'function', 'ValidateFormdata.field: validator should be type function')
@@ -33,6 +36,7 @@ ValidateFormdata.prototype.field = function (key, opts, validator) {
   this.state.pristine[key] = true
   this.state.errors[key] = null
   this.state.values[key] = ''
+  this.state.changed = false
 
   if (opts.required !== false) {
     this.state.required[key] = true
@@ -48,12 +52,14 @@ ValidateFormdata.prototype.file = function (key, opts, validator) {
     opts = {}
   }
 
+  validator = validator || noop
+
   assert.equal(typeof key, 'string', 'ValidateFormdata.file: key should be type string')
   assert.equal(typeof opts, 'object', 'ValidateFormdata.file: opts should be type object')
   assert.equal(typeof validator, 'function', 'ValidateFormdata.file: validator should be type function')
 
   this.validators[key] = validator
-  this.state.pristine[key] = false
+  this.state.pristine[key] = true
   this.state.errors[key] = null
   this.state.values[key] = null
 
@@ -77,12 +83,12 @@ ValidateFormdata.prototype.validate = function (key, value) {
 
   var error = validator(value)
 
-  this.state.errors[key] = error
+  this.state.errors[key] = error || null
   this.state.values[key] = value
-  this.changed = false
+  this._toggleChange(false)
 
   if (pristine) {
-    this.changed = true
+    this._toggleChange(true)
     this.state.pristine[key] = false
   }
 
@@ -93,12 +99,12 @@ ValidateFormdata.prototype.validate = function (key, value) {
   if (error) {
     if (!hadError) {
       if (required && !pristine) this.validLength -= 1
-      this.changed = true
+      this._toggleChange(true)
       this.errorLength += 1
     }
   } else {
     if (hadError) {
-      this.changed = true
+      this._toggleChange(true)
       this.errorLength -= 1
       if (required) this.validLength += 1
     } else if (!hadError && pristine) {
@@ -122,3 +128,10 @@ ValidateFormdata.prototype.formData = function () {
     return form
   }, new window.FormData())
 }
+
+ValidateFormdata.prototype._toggleChange = function (bool) {
+  this.state.changed = bool
+  this.changed = bool
+}
+
+function noop () {}

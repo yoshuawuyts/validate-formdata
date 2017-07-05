@@ -101,6 +101,7 @@ The state object is meant to be passed directly into the UI for rendering:
 - __validator.state.errors[key]:__ Check if there's an error for the key.
 - __validator.state.values[key]:__ Get the value from the key.
 - __validator.state.valid:__ Check if the form is valid.
+- __validator.state.changed:__ Check if the form was changed.
 
 ### `validator.field(key, [opts], validateFunction)`
 Create a new field validation function for the given key. The validation
@@ -123,6 +124,11 @@ the corresponding `state.pristine[key]` to `false`. `state.valid` is set to
 Return a `window.FormData` instance from the form. Can be used to send
 Multipart data into an XHR request. Make sure `state.valid` is `true` before
 calling this.
+
+### `validator.changed`
+Check if the form has changed to determine if it should be re-rendered. An
+example of a change is: "the form didn't have an error, and now it does." This
+value will be `false` if only new data was added.
 
 ## See Also
 - [yoshuawuyts/formdata-to-object](https://github.com/yoshuawuyts/formdata-to-object/)

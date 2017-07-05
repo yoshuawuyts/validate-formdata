@@ -6,14 +6,18 @@
   "scripts": {
     "deps": "dependency-check . && dependency-check . --extra --no-dev",
     "start": "bankai start example",
-    "test": "standard && npm run deps"
+    "test": "standard && npm run deps && browserify test | tape-run",
+    "test:fast": "browserify test | tape-run"
   },
   "dependencies": {},
   "devDependencies": {
-    "bel": "^5.0.0",
+    "bel": "^5.0.2",
+    "browserify": "^14.4.0",
     "choo": "^5.6.2",
     "dependency-check": "^2.9.1",
+    "spok": "^0.8.1",
     "standard": "^10.0.2",
-    "tape": "^4.6.3"
+    "tape": "^4.6.3",
+    "tape-run": "^3.0.0"
   }
 }
