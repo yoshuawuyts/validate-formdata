@@ -9,9 +9,10 @@ function ValidateFormdata () {
   this.validLength = 0
   this.errorLength = 0
   this.validators = {}
+  this.changed = false
   this.state = {
     changed: false,
-    valid: false,
+    valid: true,
     pristine: {},
     required: {},
     values: {},
@@ -20,10 +21,13 @@ function ValidateFormdata () {
 }
 
 ValidateFormdata.prototype.field = function (key, opts, validator) {
-  if (!validator) {
+  if (!validator && typeof opts === 'function') {
     validator = opts
     opts = {}
   }
+
+  validator = validator || noop
+  opts = opts || {}
 
   assert.equal(typeof key, 'string', 'ValidateFormdata.field: key should be type string')
   assert.equal(typeof opts, 'object', 'ValidateFormdata.field: opts should be type object')
@@ -33,35 +37,41 @@ ValidateFormdata.prototype.field = function (key, opts, validator) {
   this.state.pristine[key] = true
   this.state.errors[key] = null
   this.state.values[key] = ''
+  this.state.changed = false
 
-  if (opts.required !== false) {
-    this.state.required[key] = true
-    this.totalLength += 1
+  if (opts.required === false) {
+    this.state.required[key] = false
   } else {
-    this.state.require[key] = false
+    this.state.required[key] = true
+    this.state.valid = false
+    this.totalLength += 1
   }
 }
 
 ValidateFormdata.prototype.file = function (key, opts, validator) {
-  if (!validator) {
+  if (!validator && typeof opts === 'function') {
     validator = opts
     opts = {}
   }
+
+  validator = validator || noop
+  opts = opts || {}
 
   assert.equal(typeof key, 'string', 'ValidateFormdata.file: key should be type string')
   assert.equal(typeof opts, 'object', 'ValidateFormdata.file: opts should be type object')
   assert.equal(typeof validator, 'function', 'ValidateFormdata.file: validator should be type function')
 
   this.validators[key] = validator
-  this.state.pristine[key] = false
+  this.state.pristine[key] = true
   this.state.errors[key] = null
   this.state.values[key] = null
 
-  if (opts.required !== false) {
-    this.state.required[key] = true
-    this.totalLength += 1
-  } else {
+  if (opts.required === false) {
     this.state.required[key] = false
+  } else {
+    this.state.required[key] = true
+    this.state.valid = false
+    this.totalLength += 1
   }
 }
 
@@ -77,12 +87,12 @@ ValidateFormdata.prototype.validate = function (key, value) {
 
   var error = validator(value)
 
-  this.state.errors[key] = error
+  this.state.errors[key] = error || null
   this.state.values[key] = value
-  this.changed = false
+  this._toggleChange(false)
 
   if (pristine) {
-    this.changed = true
+    this._toggleChange(true)
     this.state.pristine[key] = false
   }
 
@@ -93,12 +103,12 @@ ValidateFormdata.prototype.validate = function (key, value) {
   if (error) {
     if (!hadError) {
       if (required && !pristine) this.validLength -= 1
-      this.changed = true
+      this._toggleChange(true)
       this.errorLength += 1
     }
   } else {
     if (hadError) {
-      this.changed = true
+      this._toggleChange(true)
       this.errorLength -= 1
       if (required) this.validLength += 1
     } else if (!hadError && pristine) {
@@ -106,7 +116,7 @@ ValidateFormdata.prototype.validate = function (key, value) {
     }
   }
 
-  if (this.validLength === this.totalLength) {
+  if (this.validLength === this.totalLength && this.errorLength === 0) {
     this.state.valid = true
   } else {
     this.state.valid = false
@@ -122,3 +132,10 @@ ValidateFormdata.prototype.formData = function () {
     return form
   }, new window.FormData())
 }
+
+ValidateFormdata.prototype._toggleChange = function (bool) {
+  this.state.changed = bool
+  this.changed = bool
+}
+
+function noop () {}
