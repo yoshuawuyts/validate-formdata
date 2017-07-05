@@ -5,12 +5,12 @@
   "version": "2.0.2",
   "scripts": {
     "deps": "dependency-check . && dependency-check . --extra --no-dev",
-    "start": "bankai start example",
-    "test": "standard && npm run deps && browserify test | tape-run",
-    "test:fast": "browserify test | tape-run"
+    "start": "bankai start test",
+    "test": "standard && npm run deps && browserify test | tape-run"
   },
   "dependencies": {},
   "devDependencies": {
+    "bankai": "^8.1.1",
     "bel": "^5.0.2",
     "browserify": "^14.4.0",
     "choo": "^5.6.2",

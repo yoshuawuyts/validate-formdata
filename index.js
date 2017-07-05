@@ -12,7 +12,7 @@ function ValidateFormdata () {
   this.changed = false
   this.state = {
     changed: false,
-    valid: false,
+    valid: true,
     pristine: {},
     required: {},
     values: {},
@@ -21,12 +21,13 @@ function ValidateFormdata () {
 }
 
 ValidateFormdata.prototype.field = function (key, opts, validator) {
-  if (!validator) {
+  if (!validator && typeof opts === 'function') {
     validator = opts
     opts = {}
   }
 
   validator = validator || noop
+  opts = opts || {}
 
   assert.equal(typeof key, 'string', 'ValidateFormdata.field: key should be type string')
   assert.equal(typeof opts, 'object', 'ValidateFormdata.field: opts should be type object')
@@ -38,21 +39,23 @@ ValidateFormdata.prototype.field = function (key, opts, validator) {
   this.state.values[key] = ''
   this.state.changed = false
 
-  if (opts.required !== false) {
-    this.state.required[key] = true
-    this.totalLength += 1
+  if (opts.required === false) {
+    this.state.required[key] = false
   } else {
-    this.state.require[key] = false
+    this.state.required[key] = true
+    this.state.valid = false
+    this.totalLength += 1
   }
 }
 
 ValidateFormdata.prototype.file = function (key, opts, validator) {
-  if (!validator) {
+  if (!validator && typeof opts === 'function') {
     validator = opts
     opts = {}
   }
 
   validator = validator || noop
+  opts = opts || {}
 
   assert.equal(typeof key, 'string', 'ValidateFormdata.file: key should be type string')
   assert.equal(typeof opts, 'object', 'ValidateFormdata.file: opts should be type object')
@@ -63,11 +66,12 @@ ValidateFormdata.prototype.file = function (key, opts, validator) {
   this.state.errors[key] = null
   this.state.values[key] = null
 
-  if (opts.required !== false) {
-    this.state.required[key] = true
-    this.totalLength += 1
-  } else {
+  if (opts.required === false) {
     this.state.required[key] = false
+  } else {
+    this.state.required[key] = true
+    this.state.valid = false
+    this.totalLength += 1
   }
 }
 
@@ -112,7 +116,7 @@ ValidateFormdata.prototype.validate = function (key, value) {
     }
   }
 
-  if (this.validLength === this.totalLength) {
+  if (this.validLength === this.totalLength && this.errorLength === 0) {
     this.state.valid = true
   } else {
     this.state.valid = false
